@@ -5,6 +5,9 @@ inputs:
   task:
     description: 'input description here'
     required: true
+  task-definition:
+    description: 'input description here'
+    required: true
 runs:
   using: 'node12'
   main: 'dist/index.js'

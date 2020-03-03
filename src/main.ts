@@ -11,6 +11,7 @@ async function run(): Promise<void> {
 
     // Get inputs
     const taskFile = core.getInput('task', {required: true})
+    const taskDefinition = core.getInput('task-definition', {required: true})
 
     // Run the task
     core.debug('Run the task')
@@ -19,6 +20,7 @@ async function run(): Promise<void> {
       : path.join(process.env.GITHUB_WORKSPACE || '', taskFile)
     const fileContents = fs.readFileSync(taskPath, 'utf8')
     const taskContents = JSON.parse(fileContents)
+    taskContents.taskDefinition = taskDefinition
     await ecs.runTask(taskContents).promise()
   } catch (error) {
     core.setFailed(error.message)
