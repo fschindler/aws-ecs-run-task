@@ -1,16 +1,25 @@
 import * as core from '@actions/core'
-import {wait} from './wait'
+import path from 'path'
+import fs from 'fs'
+import aws from 'aws-sdk'
 
 async function run(): Promise<void> {
   try {
-    const ms: string = core.getInput('milliseconds')
-    core.debug(`Waiting ${ms} milliseconds ...`)
+    const ecs = new aws.ECS({
+      customUserAgent: 'aws-ecs-run-task-for-github-actions'
+    })
 
-    core.debug(new Date().toTimeString())
-    await wait(parseInt(ms, 10))
-    core.debug(new Date().toTimeString())
+    // Get inputs
+    const taskFile = core.getInput('task', {required: true})
 
-    core.setOutput('time', new Date().toTimeString())
+    // Run the task
+    core.debug('Run the task')
+    const taskPath = path.isAbsolute(taskFile)
+      ? taskFile
+      : path.join(process.env.GITHUB_WORKSPACE || '', taskFile)
+    const fileContents = fs.readFileSync(taskPath, 'utf8')
+    const taskContents = JSON.parse(fileContents)
+    await ecs.runTask(taskContents).promise()
   } catch (error) {
     core.setFailed(error.message)
   }
